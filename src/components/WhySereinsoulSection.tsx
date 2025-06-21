@@ -84,7 +84,7 @@ const WhySereinsoulSection = () => {
           </div>
           
           {/* Single Feature Box */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
+          <div className="bg-grey/200 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
               {/* Track Card */}
               <div className="text-center">

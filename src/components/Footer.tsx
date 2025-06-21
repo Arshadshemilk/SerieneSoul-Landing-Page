@@ -91,7 +91,7 @@ const Footer = () => {
               
               <div className="flex-shrink-0 flex flex-col items-center space-y-3">
                 <Image 
-                  src="/images/meity-startup-hub-logo.png" 
+                  src="/images/MeitY.png" 
                   alt="MeitY Startup Hub" 
                   width={128}
                   height={64}
