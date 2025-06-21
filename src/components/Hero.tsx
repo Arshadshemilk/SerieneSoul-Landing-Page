@@ -1,67 +1,88 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 const Hero = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPageReady, setIsPageReady] = useState(false);
 
-  const scrollToSection = (sectionId: string) => {
-    console.log('Attempting to scroll to:', sectionId); // Debug log
-    
-    // Close mobile menu first if open
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-    
-    // Function to attempt scrolling with retries
-    const attemptScroll = (retries = 0) => {
-      const element = document.getElementById(sectionId);
+  // Wait for the page to be fully loaded
+  useEffect(() => {
+    const checkPageReady = () => {
+      // Check if all required sections exist
+      const requiredSections = ['hero', 'why-sereinsoul', 'community', 'partners', 'contact'];
+      const allSectionsExist = requiredSections.every(id => document.getElementById(id) !== null);
       
-      if (element) {
-        console.log('Element found:', element); // Debug log
-        
-        // Add a delay to ensure any mobile menu animations complete
-        setTimeout(() => {
-          try {
-            // Use scrollIntoView for better compatibility
-            element.scrollIntoView({ 
-              behavior: 'smooth',
-              block: 'start',
-              inline: 'nearest'
-            });
-            console.log('Scrolled to:', sectionId);
-          } catch (error) {
-            console.log('Scroll error:', error);
-            
-            // Fallback method
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const headerOffset = 80;
-            const offsetPosition = elementPosition - headerOffset;
-
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
-          }
-        }, isMobileMenuOpen ? 500 : 100);
+      if (allSectionsExist) {
+        setIsPageReady(true);
+        console.log('All sections found, page ready for navigation');
       } else {
-        console.log(`Element '${sectionId}' not found. Retry ${retries + 1}/5`);
-        
-        // Retry up to 5 times with increasing delays
-        if (retries < 5) {
-          setTimeout(() => attemptScroll(retries + 1), 200 * (retries + 1));
-        } else {
-          console.error('Element not found after 5 retries:', sectionId);
-          // List all available elements with IDs for debugging
-          const allElementsWithIds = document.querySelectorAll('[id]');
-          console.log('Available elements with IDs:', Array.from(allElementsWithIds).map(el => el.id));
-        }
+        console.log('Some sections missing, retrying...');
+        setTimeout(checkPageReady, 100);
       }
     };
 
-    // Start the scroll attempt
-    attemptScroll();
+    // Initial check after a small delay
+    setTimeout(checkPageReady, 100);
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    console.log('Attempting to scroll to:', sectionId);
+    
+    if (!isPageReady) {
+      console.log('Page not ready yet, waiting...');
+      // Wait for page to be ready, then try again
+      const waitForReady = () => {
+        if (isPageReady) {
+          scrollToSection(sectionId);
+        } else {
+          setTimeout(waitForReady, 100);
+        }
+      };
+      waitForReady();
+      return;
+    }
+    
+    const element = document.getElementById(sectionId);
+    
+    if (element) {
+      console.log('Element found:', element);
+      
+      // Close mobile menu first if open
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+      
+      // Add a delay to ensure any mobile menu animations complete
+      setTimeout(() => {
+        try {
+          element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest'
+          });
+          console.log('Successfully scrolled to:', sectionId);
+        } catch (error) {
+          console.log('scrollIntoView failed, trying window.scrollTo:', error);
+          
+          // Fallback method
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const headerOffset = 100;
+          const offsetPosition = elementPosition - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, isMobileMenuOpen ? 500 : 100);
+    } else {
+      console.error('Element still not found:', sectionId);
+      // Debug: list all elements with IDs
+      const allElementsWithIds = document.querySelectorAll('[id]');
+      console.log('Available elements with IDs:', Array.from(allElementsWithIds).map(el => el.id));
+    }
   };
 
   const toggleMobileMenu = () => {
@@ -69,7 +90,7 @@ const Hero = () => {
   };
   
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div id="hero" className="relative h-screen w-full overflow-hidden">
       {/* Video Background */}
       <video
         autoPlay
@@ -185,8 +206,8 @@ const Hero = () => {
         </div>
         
         {/* Desktop Navigation - hidden on mobile */}
-        <div className="hidden md:block bg-black/30 backdrop-blur-md rounded-full px-14 py-6 items-center border border-white/20 -mt-20">
-          <ul className="flex space-x-8 text-lg justify-center">
+        <div className="hidden md:block bg-black/30 backdrop-blur-md rounded-full px-14 py-5 items-center border border-white/20 -mt-20">
+          <ul className="flex space-x-8 text-2xl justify-center">
             <li><button onClick={(e) => { e.preventDefault(); console.log('Desktop Home clicked'); scrollToSection('hero'); }} className="text-white hover:text-blue-400 transition-colors duration-500 block px-3 py-2" style={{color: 'white'}} onMouseEnter={(e) => (e.target as HTMLButtonElement).style.color = '#60a5fa'} onMouseLeave={(e) => (e.target as HTMLButtonElement).style.color = 'white'}>Home</button></li>
             <li><button onClick={(e) => { e.preventDefault(); console.log('Desktop Why Sereinsoul clicked'); scrollToSection('why-sereinsoul'); }} className="text-white hover:text-blue-400 transition-colors duration-500 block px-3 py-2" style={{color: 'white'}} onMouseEnter={(e) => (e.target as HTMLButtonElement).style.color = '#60a5fa'} onMouseLeave={(e) => (e.target as HTMLButtonElement).style.color = 'white'}>Why Sereinsoul</button></li>
             <li><button onClick={(e) => { e.preventDefault(); console.log('Desktop Community clicked'); scrollToSection('community'); }} className="text-white hover:text-blue-400 transition-colors duration-500 block px-3 py-2" style={{color: 'white'}} onMouseEnter={(e) => (e.target as HTMLButtonElement).style.color = '#60a5fa'} onMouseLeave={(e) => (e.target as HTMLButtonElement).style.color = 'white'}>Community</button></li>
